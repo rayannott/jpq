@@ -1,9 +1,27 @@
 [project]
 name = "jpq"
-version = "0.1.1"
+version = "0.1.2"
 description = "jq-style JSON filtering with Python expressions."
 requires-python = ">=3.13"
+readme = "README.md"
+license = "GPL-3.0-only"
+authors = [{ name = "Airat Valiullin", email = "me@airatvaliullin.com" }]
+keywords = ["jq", "json", "filter", "transform"]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Environment :: Console",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: GNU General Public License v3 (GPLv3)",
+    "Programming Language :: Python :: 3.13",
+    "Topic :: Utilities",
+    "Topic :: Text Processing :: Filters",
+]
 dependencies = []
+
+[project.urls]
+Homepage = "https://github.com/rayannott/jpq"
+Repository = "https://github.com/rayannott/jpq"
+Issues = "https://github.com/rayannott/jpq/issues"
 
 [project.scripts]
 jpq = "jpq.cli:main"

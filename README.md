@@ -5,17 +5,21 @@
 The parsed stdin JSON is bound to `this`; the value of the expression is printed as JSON.
 
 ## Install
+From PyPI:
+```bash
+uv tool install jpq
+# or: pipx install jpq
+# or: pip install --user jpq
+```
 
 From source, after cloning:
-
 ```bash
 uv tool install .
 ```
 
 Or run straight from the checkout without (re)installing:
-
 ```bash
-echo '{"name":"alice"}' | uv run main.py 'this["name"]'
+echo '[1, 2]' | uv run main.py 'this[0]'  # 1
 ```
 
 ## Usage

@@ -1,0 +1,44 @@
+name: Publish to PyPI
+
+on:
+  push:
+    tags: ["v*"]
+
+jobs:
+  publish:
+    name: Build and publish
+    runs-on: ubuntu-latest
+    environment:
+      name: pypi
+      url: https://pypi.org/project/jpq/
+    permissions:
+      id-token: write
+      contents: read
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v6
+
+      - name: Verify tag matches pyproject version
+        run: |
+          tag="${GITHUB_REF_NAME#v}"
+          pyver=$(uv run --no-project python -c \
+            "import tomllib, pathlib; print(tomllib.loads(pathlib.Path('pyproject.toml').read_text())['project']['version'])")
+          if [ "$tag" != "$pyver" ]; then
+            echo "::error::tag $tag != pyproject version $pyver"
+            exit 1
+          fi
+
+      - name: Build sdist + wheel
+        run: uv build
+
+      - name: Smoke-test the wheel
+        run: |
+          uv tool install --force ./dist/jpq-*.whl
+          jpq --help
+          echo '{"x":1}' | jpq 'this["x"]'
+
+      - name: Publish
+        run: uv publish --trusted-publishing always
