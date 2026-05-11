@@ -1,0 +1,13 @@
+[project]
+name = "jpq"
+version = "0.1.0"
+description = "jq-style JSON filtering with Python expressions."
+requires-python = ">=3.13"
+dependencies = []
+
+[project.scripts]
+jpq = "jpq.cli:main"
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
