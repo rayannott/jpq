@@ -53,8 +53,8 @@ curl -s https://api.github.com/repos/python/cpython | jpq '
 
 Read environment variables:
 ```bash
-export PWD=secret123
-echo '{"url": "postgres://user:pass@host:port/db"}' | jpq 'this["url"].replace("pass", env("PWD"))'
+export PASS=secret123
+echo '{"url": "postgres://user:pass@host:port/db"}' | jpq 'this["url"].replace("pass", env("PASS"))'
 # "postgres://user:secret123@host:port/db"
 ```
-Here `env("PWD")` is equivalent to `os.environ["PWD"]` (see [helpers.py](src/jpq/helpers.py)).
+Here `env("PASS")` is equivalent to `os.environ["PASS"]` (see [helpers.py](src/jpq/helpers.py)).
