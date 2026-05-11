@@ -18,6 +18,12 @@ For local hacking:
 uv tool install --editable .
 ```
 
+Or run straight from the checkout without installing:
+
+```bash
+echo '{"name":"alice"}' | uv run main.py 'this["name"]'
+```
+
 ## Usage
 
 ```bash

@@ -28,14 +28,14 @@ Examples:
   echo '[1,2,3,4,5]' | jpq 'statistics.mean(this)'
   # 3
 
-  echo '["a", "b", "a"]' | jpq 'dict(collections.Counter(this))'
+  echo '["a", "b", "a"]' | jpq 'collections.Counter(this)'
   # {"a": 2, "b": 1}
 
   echo '["foo123","bar456"]' | jpq '[re.sub(r"\\d+","",s) for s in this]'
   # ["foo", "bar"]
 
-  curl -s https://api.github.com/repos/python/cpython | jpq 'this["full_name"]'
-  # "python/cpython"
+  curl -s https://api.github.com/repos/python/cpython | jpq 'this["stargazers_count"]'
+  # 72644
 """
 
 
