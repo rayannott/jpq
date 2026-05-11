@@ -4,11 +4,13 @@ import datetime
 import itertools
 import json
 import math
+import os
 import re
 import statistics
 import sys
-from typing import Any, IO
+from typing import IO, Any
 
+from jpq.helpers import env as env_helper
 
 HELP = r"""usage: jpq 'EXPR'
 
@@ -17,7 +19,7 @@ The parsed JSON is bound to the name `this`. The result of EXPR
 is printed as JSON.
 
 Available without import:
-  re, collections, itertools, statistics, math, datetime
+  re, os, collections, itertools, statistics, math, datetime
   (plus all builtins: sum, len, min, max, sorted, set, ...)
 
 Examples:
@@ -32,16 +34,6 @@ Examples:
 
   echo '["foo123","bar456"]' | jpq '[re.sub(r"\d+","",s) for s in this]'
   # ["foo", "bar"]
-
-  curl -s https://api.github.com/repos/python/cpython | jpq '
-{
-"stars": this["stargazers_count"],
-"last_pushed_seconds_ago": (
-    datetime.datetime.now(tz=datetime.UTC)
-    - datetime.datetime.fromisoformat(this["pushed_at"])
-).total_seconds()
-}'
-  # {"stars": 72644, "last_pushed_seconds_ago": 2168.664175}
 """
 
 
@@ -104,6 +96,8 @@ def evaluate(expr: str, this: Any) -> Any:
         "statistics": statistics,
         "math": math,
         "datetime": datetime,
+        "os": os,
+        "env": env_helper,
     }
     try:
         code = compile(expr, "<expr>", "eval")
