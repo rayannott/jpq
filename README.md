@@ -12,13 +12,7 @@ From source, after cloning:
 uv tool install .
 ```
 
-For local hacking:
-
-```bash
-uv tool install --editable .
-```
-
-Or run straight from the checkout without installing:
+Or run straight from the checkout without (re)installing:
 
 ```bash
 echo '{"name":"alice"}' | uv run main.py 'this["name"]'
@@ -40,3 +34,27 @@ echo '[{"k":"a"},{"k":"b"},{"k":"a"}]' | jpq 'collections.Counter(el["k"] for el
 Pre-imported in the eval namespace: `re`, `collections`, `itertools`, `statistics`, `math`, `datetime`, plus all builtins.
 
 Run `jpq --help` for more.
+
+## Advanced examples
+
+Pipe an API response through a multi-line expression to reshape it:
+
+```bash
+curl -s https://api.github.com/repos/python/cpython | jpq '
+{
+"stars": this["stargazers_count"],
+"last_pushed_seconds_ago": (
+    datetime.datetime.now(tz=datetime.UTC)
+    - datetime.datetime.fromisoformat(this["pushed_at"])
+).total_seconds()
+}'
+# {"stars": 72644, "last_pushed_seconds_ago": 2168.664175}
+```
+
+Read environment variables:
+```bash
+export PASS=secret123
+echo '{"url": "postgres://user:pass@host:port/db"}' | jpq 'this["url"].replace("pass", env("PASS"))'
+# "postgres://user:secret123@host:port/db"
+```
+Here `env("PASS")` is equivalent to `os.environ["PASS"]` (see [helpers.py](src/jpq/helpers.py)).

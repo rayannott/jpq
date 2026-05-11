@@ -1,6 +1,6 @@
 [project]
 name = "jpq"
-version = "0.1.0"
+version = "0.1.1"
 description = "jq-style JSON filtering with Python expressions."
 requires-python = ">=3.13"
 dependencies = []
