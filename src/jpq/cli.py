@@ -7,10 +7,11 @@ import math
 import re
 import statistics
 import sys
+from typing import Any, IO
 
 
 HELP = """\
-usage: jqpy 'EXPR'
+usage: jpq 'EXPR'
 
 Evaluate a Python expression against JSON read from stdin.
 The parsed JSON is bound to the name `this`. The result of EXPR
@@ -21,51 +22,50 @@ Available without import:
   (plus all builtins: sum, len, min, max, sorted, set, ...)
 
 Examples:
-  echo '{"name":"alice","age":30}' | jqpy 'this["name"]'
+  echo '{"name":"alice","age":30}' | jpq 'this["name"]'
   # "alice"
 
-  echo '[{"a":1},{"a":2},{"a":-1}]' | jqpy 'sum(el["a"] for el in this if el["a"] < 2)'
-  # 0
-
-  echo '[1,2,3,4,5]' | jqpy 'statistics.mean(this)'
+  echo '[1,2,3,4,5]' | jpq 'statistics.mean(this)'
   # 3
 
-  echo '[{"k":"a"},{"k":"b"},{"k":"a"}]' | jqpy 'collections.Counter(el["k"] for el in this)'
+  echo '["a", "b", "a"]' | jpq 'dict(collections.Counter(this))'
   # {"a": 2, "b": 1}
 
-  echo '["foo123","bar456"]' | jqpy '[re.sub(r"\\d+","",s) for s in this]'
+  echo '["foo123","bar456"]' | jpq '[re.sub(r"\\d+","",s) for s in this]'
   # ["foo", "bar"]
+
+  curl -s https://api.github.com/repos/python/cpython | jpq 'this["full_name"]'
+  # "python/cpython"
 """
 
 
-# Exit codes
 EXIT_USAGE = 2
 EXIT_STDIN = 3
 EXIT_EVAL = 4
 EXIT_OUTPUT = 5
 
 
-class JqpyError(Exception):
-    """Base class for jqpy errors. Subclasses set `exit_code`."""
-    exit_code = 1
+class JpqError(Exception):
+    """Base class for jpq errors. Subclasses set `exit_code`."""
+    exit_code: int = 1
 
 
-class StdinError(JqpyError):
+class StdinError(JpqError):
     """Input on stdin was not valid JSON (or unreadable)."""
     exit_code = EXIT_STDIN
 
 
-class EvalError(JqpyError):
+class EvalError(JpqError):
     """The expression failed to parse or raised at runtime."""
     exit_code = EXIT_EVAL
 
 
-class OutputError(JqpyError):
+class OutputError(JpqError):
     """The result could not be serialized to JSON."""
     exit_code = EXIT_OUTPUT
 
 
-def _fallback(o):
+def _fallback(o: Any) -> Any:
     if isinstance(o, (set, frozenset)):
         return list(o)
     if isinstance(o, (datetime.datetime, datetime.date)):
@@ -76,7 +76,7 @@ def _fallback(o):
         return str(o)
 
 
-def read_input(stream):
+def read_input(stream: IO[str]) -> Any:
     try:
         return json.load(stream)
     except json.JSONDecodeError as e:
@@ -85,8 +85,8 @@ def read_input(stream):
         raise StdinError(f"could not read stdin: {e}") from e
 
 
-def evaluate(expr, this):
-    env = {
+def evaluate(expr: str, this: Any) -> Any:
+    env: dict[str, Any] = {
         "__builtins__": __builtins__,
         "re": re,
         "collections": collections,
@@ -106,14 +106,14 @@ def evaluate(expr, this):
         raise EvalError(f"{type(e).__name__}: {e}") from e
 
 
-def write_output(result):
+def write_output(result: Any) -> str:
     try:
         return json.dumps(result, indent=2, ensure_ascii=False, default=_fallback)
     except (TypeError, ValueError) as e:
         raise OutputError(f"result is not JSON-serializable: {e}") from e
 
 
-def main():
+def main() -> None:
     if len(sys.argv) < 2 or sys.argv[1] in ("-h", "--help"):
         if len(sys.argv) < 2:
             print(HELP, file=sys.stderr)
@@ -127,8 +127,8 @@ def main():
         this = read_input(sys.stdin)
         result = evaluate(expr, this)
         output = write_output(result)
-    except JqpyError as e:
-        print(f"jqpy: {e}", file=sys.stderr)
+    except JpqError as e:
+        print(f"jpq: {e}", file=sys.stderr)
         sys.exit(e.exit_code)
 
     print(output)
