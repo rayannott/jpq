@@ -8,9 +8,18 @@ import os
 import re
 import statistics
 import sys
+from importlib.metadata import PackageNotFoundError, version as pkg_version
 from typing import IO, Any
 
 from jpq.helpers import env as env_helper
+
+
+def _get_version() -> str:
+    try:
+        return pkg_version("jpq")
+    except PackageNotFoundError:
+        return "unknown"
+
 
 HELP = r"""usage: jpq 'EXPR'
 
@@ -123,6 +132,10 @@ def main() -> None:
             print(HELP, file=sys.stderr)
             sys.exit(EXIT_USAGE)
         print(HELP)
+        sys.exit(0)
+
+    if sys.argv[1] == "--version":
+        print(f"jpq {_get_version()}")
         sys.exit(0)
 
     expr = sys.argv[1]
