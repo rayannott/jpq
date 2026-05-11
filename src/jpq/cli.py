@@ -10,8 +10,7 @@ import sys
 from typing import Any, IO
 
 
-HELP = """\
-usage: jpq 'EXPR'
+HELP = r"""usage: jpq 'EXPR'
 
 Evaluate a Python expression against JSON read from stdin.
 The parsed JSON is bound to the name `this`. The result of EXPR
@@ -31,11 +30,18 @@ Examples:
   echo '["a", "b", "a"]' | jpq 'collections.Counter(this)'
   # {"a": 2, "b": 1}
 
-  echo '["foo123","bar456"]' | jpq '[re.sub(r"\\d+","",s) for s in this]'
+  echo '["foo123","bar456"]' | jpq '[re.sub(r"\d+","",s) for s in this]'
   # ["foo", "bar"]
 
-  curl -s https://api.github.com/repos/python/cpython | jpq 'this["stargazers_count"]'
-  # 72644
+  curl -s https://api.github.com/repos/python/cpython | jpq '
+{
+"stars": this["stargazers_count"],
+"last_pushed_seconds_ago": (
+    datetime.datetime.now(tz=datetime.UTC)
+    - datetime.datetime.fromisoformat(this["pushed_at"])
+).total_seconds()
+}'
+  # {"stars": 72644, "last_pushed_seconds_ago": 2168.664175}
 """
 
 
@@ -47,21 +53,25 @@ EXIT_OUTPUT = 5
 
 class JpqError(Exception):
     """Base class for jpq errors. Subclasses set `exit_code`."""
+
     exit_code: int = 1
 
 
 class StdinError(JpqError):
     """Input on stdin was not valid JSON (or unreadable)."""
+
     exit_code = EXIT_STDIN
 
 
 class EvalError(JpqError):
     """The expression failed to parse or raised at runtime."""
+
     exit_code = EXIT_EVAL
 
 
 class OutputError(JpqError):
     """The result could not be serialized to JSON."""
+
     exit_code = EXIT_OUTPUT
 
 
