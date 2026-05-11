@@ -1,0 +1,40 @@
+repos:
+  - repo: https://github.com/astral-sh/ruff-pre-commit
+    rev: v0.12.7
+    hooks:
+      - id: ruff-check
+        args: [--fix]
+      - id: ruff-format
+
+  - repo: https://github.com/pre-commit/mirrors-mypy
+    rev: v1.17.1
+    hooks:
+      - id: mypy
+        args:
+          [
+            --ignore-missing-imports,
+            --show-error-codes,
+            --pretty,
+            --allow-untyped-decorators,
+            --namespace-packages,
+            --explicit-package-bases,
+          ]
+        additional_dependencies:
+          - "pydantic"
+          - "types-requests"
+
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v5.0.0
+    hooks:
+      - id: end-of-file-fixer
+      - id: trailing-whitespace
+      - id: check-yaml
+      - id: no-commit-to-branch
+        args: [--branch=main]
+
+  - repo: https://github.com/astral-sh/uv-pre-commit
+    # uv version.
+    rev: 0.8.4
+    hooks:
+      # Update the uv lockfile
+      - id: uv-lock
