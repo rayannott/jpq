@@ -8,11 +8,13 @@ import os
 import re
 import statistics
 import sys
-from importlib.metadata import PackageNotFoundError, version as pkg_version
+from importlib.metadata import PackageNotFoundError
+from importlib.metadata import version as pkg_version
 from typing import IO, Any
 
 import click
 
+from jpq.exceptions import EvalError, JpqError, OutputError, StdinError
 from jpq.helpers import env as env_helper
 
 
@@ -45,38 +47,9 @@ Examples:
   # {"a": 2, "b": 1}
 
 \b
-  echo '["foo123","bar456"]' | jpq '[re.sub(r"\\d+","",s) for s in this]'
+  echo '["foo123","bar456"]' | jpq '[re.sub(r"\\d","",s) for s in this]'
   # ["foo", "bar"]
 """
-
-
-EXIT_STDIN = 3
-EXIT_EVAL = 4
-EXIT_OUTPUT = 5
-
-
-class JpqError(Exception):
-    """Base class for jpq errors. Subclasses set `exit_code`."""
-
-    exit_code: int = 1
-
-
-class StdinError(JpqError):
-    """Input on stdin was not valid JSON (or unreadable)."""
-
-    exit_code = EXIT_STDIN
-
-
-class EvalError(JpqError):
-    """The expression failed to parse or raised at runtime."""
-
-    exit_code = EXIT_EVAL
-
-
-class OutputError(JpqError):
-    """The result could not be serialized to JSON."""
-
-    exit_code = EXIT_OUTPUT
 
 
 def _fallback(o: Any) -> Any:
@@ -139,14 +112,15 @@ def write_output(result: Any, *, compact: bool = False) -> str:
 )
 @click.argument("expr")
 @click.option(
-    "--oneline",
+    "--compact",
+    "-c",
     is_flag=True,
     help="Print the result as compact JSON (no indentation).",
 )
 @click.version_option(
     version=_get_version(), prog_name="jpq", message="jpq %(version)s"
 )
-def main(expr: str, oneline: bool) -> None:
+def main(expr: str, compact: bool) -> None:
     """Evaluate a Python expression against JSON read from stdin.
 
     The parsed JSON is bound to the name `this`. The result of EXPR is
@@ -155,7 +129,7 @@ def main(expr: str, oneline: bool) -> None:
     try:
         this = read_input(sys.stdin)
         result = evaluate(expr, this)
-        output = write_output(result, compact=oneline)
+        output = write_output(result, compact=compact)
     except JpqError as e:
         click.echo(f"jpq: {e}", err=True)
         sys.exit(e.exit_code)
