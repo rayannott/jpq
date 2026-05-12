@@ -19,20 +19,21 @@ uv tool install .
 
 Or run straight from the checkout without (re)installing:
 ```bash
-echo '[1, 2]' | uv run main.py 'this[0]'  # 1
+$ echo '[1, 2]' | uv run main.py 'this[0]'
+1
 ```
 
 ## Usage
 
 ```bash
-echo '{"name":"alice","age":30}' | jpq 'this["name"]'
-# "alice"
+$ echo '{"name":"alice","age":30}' | jpq 'this["name"]'
+"alice"
 
-echo '[1,2,3,4,5]' | jpq 'statistics.mean(this)'
-# 3
+$ echo '[1,2,3,4,5]' | jpq 'statistics.mean(this)'
+3
 
-echo '[{"k":"a"},{"k":"b"},{"k":"a"}]' | jpq 'collections.Counter(el["k"] for el in this)'
-# {"a": 2, "b": 1}
+$ echo '[{"k":"a"},{"k":"b"},{"k":"a"}]' | jpq 'collections.Counter(el["k"] for el in this)'
+{"a": 2, "b": 1}
 ```
 
 Pre-imported in the eval namespace: `re`, `collections`, `itertools`, `statistics`, `math`, `datetime`, plus all builtins.
@@ -44,7 +45,7 @@ Run `jpq --help` for more.
 Pipe an API response through a multi-line expression to reshape it:
 
 ```bash
-curl -s https://api.github.com/repos/python/cpython | jpq '
+$ curl -s https://api.github.com/repos/python/cpython | jpq '
 {
 "stars": this["stargazers_count"],
 "last_pushed_seconds_ago": (
@@ -52,7 +53,7 @@ curl -s https://api.github.com/repos/python/cpython | jpq '
     - datetime.datetime.fromisoformat(this["pushed_at"])
 ).total_seconds()
 }'
-# {"stars": 72644, "last_pushed_seconds_ago": 2168.664175}
+{"stars": 72644, "last_pushed_seconds_ago": 2168.664175}
 ```
 
 Read environment variables:

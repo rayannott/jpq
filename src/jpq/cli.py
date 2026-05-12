@@ -33,22 +33,26 @@ Available without import:
 
 \b
 Examples:
+\b
+  $ echo '{"name":"alice","age":30}' | jpq 'this["name"]'
+  "alice"
 
 \b
-  echo '{"name":"alice","age":30}' | jpq 'this["name"]'
-  # "alice"
+  $ echo '[1,2,3,4,5]' | jpq 'statistics.mean(this)'
+  3
 
 \b
-  echo '[1,2,3,4,5]' | jpq 'statistics.mean(this)'
-  # 3
+  $ echo '["a", "b", "a"]' | jpq 'collections.Counter(this)'
+  {"a": 2, "b": 1}
 
 \b
-  echo '["a", "b", "a"]' | jpq 'collections.Counter(this)'
-  # {"a": 2, "b": 1}
+  $ echo '["foo123","bar456"]' | jpq '[re.sub(r"\\d","",s) for s in this]'
+  ["foo", "bar"]
 
 \b
-  echo '["foo123","bar456"]' | jpq '[re.sub(r"\\d","",s) for s in this]'
-  # ["foo", "bar"]
+  $ echo '"2020-02-28T23:59:59+00:00"' | jpq 'datetime.datetime.fromisoformat(this) + datetime.timedelta(seconds=1)'
+  "2020-02-29T00:00:00+00:00"
+
 """
 
 
