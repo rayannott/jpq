@@ -3,6 +3,7 @@ import collections
 import datetime
 import itertools
 import json
+import pathlib
 import math
 import os
 import re
@@ -28,12 +29,11 @@ def _get_version() -> str:
 EPILOG = """\
 \b
 Available without import:
-  re, os, collections, itertools, statistics, math, datetime
+  re, os, collections, itertools, statistics, math, datetime, pathlib
   (plus all builtins: sum, len, min, max, sorted, set, ...)
 
 \b
 Examples:
-\b
   $ echo '{"name":"alice","age":30}' | jpq 'this["name"]'
   "alice"
 
@@ -61,10 +61,9 @@ def _fallback(o: Any) -> Any:
         return list(o)
     if isinstance(o, (datetime.datetime, datetime.date)):
         return o.isoformat()
-    try:
-        return list(o)
-    except TypeError:
+    if isinstance(o, pathlib.Path):
         return str(o)
+    raise TypeError(f"cannot serialize {type(o).__name__}")
 
 
 def read_input(stream: IO[str]) -> Any:
@@ -86,6 +85,7 @@ def evaluate(expr: str, this: Any) -> Any:
         "math": math,
         "datetime": datetime,
         "os": os,
+        "pathlib": pathlib,
         "env": env_helper,
     }
     try:
