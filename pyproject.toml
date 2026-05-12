@@ -30,7 +30,7 @@ jpq = "jpq.cli:main"
 
 [dependency-groups]
 dev = [
-    "mypy>=1.17",
+    "mypy>=2.1.0",
 ]
 
 [tool.mypy]
