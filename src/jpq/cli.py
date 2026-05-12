@@ -1,4 +1,3 @@
-#!/usr/bin/env python3
 import collections
 import datetime
 import itertools
@@ -16,7 +15,6 @@ from typing import IO, Any
 import click
 
 from jpq.exceptions import EvalError, JpqError, OutputError, StdinError
-from jpq.helpers import env as env_helper
 
 
 def _get_version() -> str:
@@ -86,7 +84,7 @@ def evaluate(expr: str, this: Any) -> Any:
         "datetime": datetime,
         "os": os,
         "pathlib": pathlib,
-        "env": env_helper,
+        "env": lambda name: os.environ[name],
     }
     try:
         code = compile(expr, "<expr>", "eval")
