@@ -11,6 +11,8 @@ import sys
 from importlib.metadata import PackageNotFoundError, version as pkg_version
 from typing import IO, Any
 
+import click
+
 from jpq.helpers import env as env_helper
 
 
@@ -21,32 +23,33 @@ def _get_version() -> str:
         return "unknown"
 
 
-HELP = r"""usage: jpq 'EXPR'
-
-Evaluate a Python expression against JSON read from stdin.
-The parsed JSON is bound to the name `this`. The result of EXPR
-is printed as JSON.
-
+EPILOG = """\
+\b
 Available without import:
   re, os, collections, itertools, statistics, math, datetime
   (plus all builtins: sum, len, min, max, sorted, set, ...)
 
+\b
 Examples:
+
+\b
   echo '{"name":"alice","age":30}' | jpq 'this["name"]'
   # "alice"
 
+\b
   echo '[1,2,3,4,5]' | jpq 'statistics.mean(this)'
   # 3
 
+\b
   echo '["a", "b", "a"]' | jpq 'collections.Counter(this)'
   # {"a": 2, "b": 1}
 
-  echo '["foo123","bar456"]' | jpq '[re.sub(r"\d+","",s) for s in this]'
+\b
+  echo '["foo123","bar456"]' | jpq '[re.sub(r"\\d+","",s) for s in this]'
   # ["foo", "bar"]
 """
 
 
-EXIT_USAGE = 2
 EXIT_STDIN = 3
 EXIT_EVAL = 4
 EXIT_OUTPUT = 5
@@ -119,37 +122,46 @@ def evaluate(expr: str, this: Any) -> Any:
         raise EvalError(f"{type(e).__name__}: {e}") from e
 
 
-def write_output(result: Any) -> str:
+def write_output(result: Any, *, compact: bool = False) -> str:
     try:
+        if compact:
+            return json.dumps(
+                result, separators=(",", ":"), ensure_ascii=False, default=_fallback
+            )
         return json.dumps(result, indent=2, ensure_ascii=False, default=_fallback)
     except (TypeError, ValueError) as e:
         raise OutputError(f"result is not JSON-serializable: {e}") from e
 
 
-def main() -> None:
-    if len(sys.argv) < 2 or sys.argv[1] in ("-h", "--help"):
-        if len(sys.argv) < 2:
-            print(HELP, file=sys.stderr)
-            sys.exit(EXIT_USAGE)
-        print(HELP)
-        sys.exit(0)
+@click.command(
+    context_settings={"help_option_names": ["-h", "--help"]},
+    epilog=EPILOG,
+)
+@click.argument("expr")
+@click.option(
+    "--oneline",
+    is_flag=True,
+    help="Print the result as compact JSON (no indentation).",
+)
+@click.version_option(
+    version=_get_version(), prog_name="jpq", message="jpq %(version)s"
+)
+def main(expr: str, oneline: bool) -> None:
+    """Evaluate a Python expression against JSON read from stdin.
 
-    if sys.argv[1] == "--version":
-        print(f"jpq {_get_version()}")
-        sys.exit(0)
-
-    expr = sys.argv[1]
-
+    The parsed JSON is bound to the name `this`. The result of EXPR is
+    printed as JSON.
+    """
     try:
         this = read_input(sys.stdin)
         result = evaluate(expr, this)
-        output = write_output(result)
+        output = write_output(result, compact=oneline)
     except JpqError as e:
-        print(f"jpq: {e}", file=sys.stderr)
+        click.echo(f"jpq: {e}", err=True)
         sys.exit(e.exit_code)
 
-    print(output)
+    click.echo(output)
 
 
 if __name__ == "__main__":
-    main()
+    main()  # pyright: ignore[reportCallIssue]  # type: ignore[call-arg]

@@ -16,7 +16,9 @@ classifiers = [
     "Topic :: Utilities",
     "Topic :: Text Processing :: Filters",
 ]
-dependencies = []
+dependencies = [
+    "click>=8.3.3",
+]
 
 [project.urls]
 Homepage = "https://github.com/rayannott/jpq"
