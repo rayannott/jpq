@@ -112,7 +112,7 @@ def write_output(result: Any, *, compact: bool = False) -> str:
     context_settings={"help_option_names": ["-h", "--help"]},
     epilog=EPILOG,
 )
-@click.argument("expr")
+@click.argument("expr", required=False, default=None)
 @click.option(
     "--compact",
     "-c",
@@ -122,12 +122,21 @@ def write_output(result: Any, *, compact: bool = False) -> str:
 @click.version_option(
     version=_get_version(), prog_name="jpq", message="jpq %(version)s"
 )
-def main(expr: str, compact: bool) -> None:
+def main(expr: str | None, compact: bool) -> None:
     """Evaluate a Python expression against JSON read from stdin.
 
-    The parsed JSON is bound to the name `this`. The result of EXPR is
-    printed as JSON.
+    The parsed JSON is bound to the name `this`. If EXPR is omitted,
+    the identity transform (`this`) is used. The result is printed as JSON.
     """
+    # If no expression is provided and stdin is a terminal, print the help and exit.
+    if expr is None and sys.stdin.isatty():
+        ctx = click.get_current_context()
+        click.echo(ctx.get_help())
+        ctx.exit(2)
+
+    if expr is None:
+        expr = "this"
+
     try:
         this = read_input(sys.stdin)
         result = evaluate(expr, this)
