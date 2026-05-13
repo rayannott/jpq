@@ -5,11 +5,12 @@
 The parsed stdin JSON is bound to `this`; the value of the expression is printed as JSON.
 
 ## Install
-From PyPI:
+From PyPI using `uv` (recommended):
 ```bash
 uv tool install jpq
-# or: pipx install jpq
-# or: pip install --user jpq
+# alternatively (using pip/pipx):
+# pipx install jpq
+# pip install --user jpq
 ```
 
 From source, after cloning:
@@ -17,23 +18,25 @@ From source, after cloning:
 uv tool install .
 ```
 
+By building locally:
+```bash
+uv build
+uv tool install ./dist/jpq-*.whl
+```
+
 Or run straight from the checkout without (re)installing:
 ```bash
-$ echo '[1, 2]' | uv run main.py 'this[0]'
-1
+$ echo '[1, 2]' | uv run main.py 'this[0]'  # 1
 ```
 
 ## Usage
 
 ```bash
-$ echo '{"name":"alice","age":30}' | jpq 'this["name"]'
-"alice"
+$ echo '{"name":"alice","age":30}' | jpq 'this["name"]'  # "alice"
 
-$ echo '[1,2,3,4,5]' | jpq 'statistics.mean(this)'
-3
+$ echo '[1,2,3,4,5]' | jpq 'statistics.mean(this)'  # 3
 
-$ echo '[{"k":"a"},{"k":"b"},{"k":"a"}]' | jpq 'collections.Counter(el["k"] for el in this)'
-{"a": 2, "b": 1}
+$ echo '[{"status":"ok"},{"status":"error"},{"status":"ok"}]' | jpq 'collections.Counter(el["status"] for el in this)'  # {"ok": 2, "error": 1}
 ```
 
 Pre-imported in the eval namespace: `re`, `collections`, `itertools`, `statistics`, `math`, `datetime`, plus all builtins.
@@ -47,11 +50,18 @@ Pipe an API response through a multi-line expression to reshape it:
 ```bash
 $ curl -s https://api.github.com/repos/python/cpython | jpq '
 {
+"now": (now:=datetime.datetime.now(tz=datetime.UTC)),
 "stars": this["stargazers_count"],
 "last_pushed_seconds_ago": (
-    datetime.datetime.now(tz=datetime.UTC)
-    - datetime.datetime.fromisoformat(this["pushed_at"])
-).total_seconds()
+    now - datetime.datetime.fromisoformat(this["pushed_at"])
+).total_seconds(),
 }'
-{"stars": 72644, "last_pushed_seconds_ago": 2168.664175}
+{
+  "now": "2026-05-13T15:05:11.746397+00:00",
+  "stars": 72668,
+  "last_pushed_seconds_ago": 566.746397
+}
 ```
+Note how the walrus operator (`:=`) is used to assign `now` and use it in the expression and how it is serialized to JSON via `datetime` fallback.
+
+See more examples in the [blog post](https://stack.airatvaliullin.com/tools/terminal/jpq/) about `jpq`.
