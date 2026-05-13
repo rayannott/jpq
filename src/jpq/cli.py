@@ -12,8 +12,8 @@ from importlib.metadata import PackageNotFoundError
 from importlib.metadata import version as pkg_version
 from typing import IO, Any
 
-import rich
 import rich_click as click
+import rich
 from rich.syntax import Syntax
 
 from jpq.exceptions import EvalError, JpqError, OutputError, StdinError
@@ -119,15 +119,14 @@ def write_output(result: Any, *, compact: bool = False) -> str:
     help="Print the result as compact JSON (no indentation).",
 )
 @click.option(
-    "--color/--no-color",
+    "--no-color",
     is_flag=True,
-    default=None,
-    help="Color output. Default is auto-detection: on if stdout is a terminal and NO_COLOR is not set.",
+    help="Disable color output. By default, color is auto-detected.",
 )
 @click.version_option(
     version=_get_version(), prog_name="jpq", message="jpq %(version)s"
 )
-def main(expr: str | None, compact: bool, color: bool | None) -> None:
+def main(expr: str | None, compact: bool, no_color: bool) -> None:
     """Evaluate a Python expression against JSON read from stdin.
 
     The parsed JSON is bound to the name `this`. The result is printed as JSON.
@@ -151,11 +150,7 @@ def main(expr: str | None, compact: bool, color: bool | None) -> None:
         click.echo(f"jpq: {e}", err=True)
         sys.exit(e.exit_code)
 
-    if (
-        color
-        if color is not None
-        else (sys.stdout.isatty() and not os.environ.get("NO_COLOR"))
-    ):
+    if not no_color and sys.stdout.isatty() and not os.environ.get("NO_COLOR"):
         rich.print(Syntax(output, "json", background_color="default"))
     else:
         click.echo(output)
