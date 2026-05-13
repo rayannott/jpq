@@ -2,9 +2,9 @@ import collections
 import datetime
 import itertools
 import json
-import pathlib
 import math
 import os
+import pathlib
 import re
 import statistics
 import sys
@@ -12,9 +12,13 @@ from importlib.metadata import PackageNotFoundError
 from importlib.metadata import version as pkg_version
 from typing import IO, Any
 
-import click
+import rich_click as click
+import rich
+from rich.syntax import Syntax
 
 from jpq.exceptions import EvalError, JpqError, OutputError, StdinError
+
+click.rich_click.THEME = "magenta2-modern"
 
 
 def _get_version() -> str:
@@ -27,30 +31,21 @@ def _get_version() -> str:
 EPILOG = """\
 \b
 Available without import:
+
+\b
   re, os, collections, itertools, statistics, math, datetime, pathlib
-  (plus all builtins: sum, len, min, max, sorted, set, ...)
 
 \b
 Examples:
-  $ echo '{"name":"alice","age":30}' | jpq 'this["name"]'
-  "alice"
 
 \b
-  $ echo '[1,2,3,4,5]' | jpq 'statistics.mean(this)'
-  3
+  echo '{"name":"alice","age":30}' | jpq 'this["name"]'
 
 \b
-  $ echo '["a", "b", "a"]' | jpq 'collections.Counter(this)'
-  {"a": 2, "b": 1}
+  echo '[1,2,3,4,5]' | jpq 'statistics.mean(this)'
 
 \b
-  $ echo '["foo123","bar456"]' | jpq '[re.sub(r"\\d","",s) for s in this]'
-  ["foo", "bar"]
-
-\b
-  $ echo '"2020-02-28T23:59:59+00:00"' | jpq 'datetime.datetime.fromisoformat(this) + datetime.timedelta(seconds=1)'
-  "2020-02-29T00:00:00+00:00"
-
+  echo '[1,2,3]' | jpq '[x * 2 for x in this]'
 """
 
 
@@ -119,21 +114,27 @@ def write_output(result: Any, *, compact: bool = False) -> str:
     is_flag=True,
     help="Print the result as compact JSON (no indentation).",
 )
+@click.option(
+    "--no-color",
+    is_flag=True,
+    help="Disable color output. By default, color is auto-detected.",
+)
 @click.version_option(
     version=_get_version(), prog_name="jpq", message="jpq %(version)s"
 )
-def main(expr: str | None, compact: bool) -> None:
+def main(expr: str | None, compact: bool, no_color: bool) -> None:
     """Evaluate a Python expression against JSON read from stdin.
 
-    The parsed JSON is bound to the name `this`. If EXPR is omitted,
-    the identity transform (`this`) is used. The result is printed as JSON.
+    The parsed JSON is bound to the name `this`. The result is printed as JSON.
     """
     # If no expression is provided and stdin is a terminal, print the help and exit.
     if expr is None and sys.stdin.isatty():
         ctx = click.get_current_context()
+        assert ctx is not None
         click.echo(ctx.get_help())
         ctx.exit(2)
 
+    # If no expression is provided, use the identity transform.
     if expr is None:
         expr = "this"
 
@@ -145,7 +146,10 @@ def main(expr: str | None, compact: bool) -> None:
         click.echo(f"jpq: {e}", err=True)
         sys.exit(e.exit_code)
 
-    click.echo(output)
+    if not no_color and sys.stdout.isatty() and not os.environ.get("NO_COLOR"):
+        rich.print(Syntax(output, "json", background_color="default"))
+    else:
+        click.echo(output)
 
 
 if __name__ == "__main__":
