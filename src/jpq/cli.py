@@ -34,22 +34,18 @@ Available without import:
 
 \b
   re, os, collections, itertools, statistics, math, datetime, pathlib
-  (plus all builtins: sum, len, min, max, sorted, set, ...)
 
 \b
 Examples:
 
 \b
-  $ echo '{"name":"alice","age":30}' | jpq 'this["name"]'  # "alice"
+  echo '{"name":"alice","age":30}' | jpq 'this["name"]'
 
 \b
-  $ echo '[1,2,3,4,5]' | jpq 'statistics.mean(this)'  # 3
+  echo '[1,2,3,4,5]' | jpq 'statistics.mean(this)'
 
 \b
-  $ echo '["a", "b", "a"]' | jpq 'collections.Counter(this)'  # {"a": 2, "b": 1}
-
-\b
-  $ echo '["foo123","bar456"]' | jpq '[re.sub(r"\\d","",s) for s in this]'  # ["foo", "bar"]
+  echo '[1,2,3]' | jpq '[x * 2 for x in this]'
 """
 
 

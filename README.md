@@ -26,7 +26,7 @@ uv tool install ./dist/jpq-*.whl
 
 Or run straight from the checkout without (re)installing:
 ```bash
-$ echo '[1, 2]' | uv run main.py 'this[0]'  # 1
+$ echo '[1,2]' | uv run main.py 'this[0]'  # 1
 ```
 
 ## Usage
