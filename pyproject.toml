@@ -18,6 +18,8 @@ classifiers = [
 ]
 dependencies = [
     "click>=8.3.3",
+    "rich>=15.0.0",
+    "rich-click>=1.9.7",
 ]
 
 [project.urls]
@@ -31,6 +33,7 @@ jpq = "jpq.cli:main"
 [dependency-groups]
 dev = [
     "mypy>=2.1.0",
+    "pre-commit>=4.6.0",
     "pytest>=8.3",
 ]
 
