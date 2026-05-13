@@ -31,6 +31,13 @@ jpq = "jpq.cli:main"
 [dependency-groups]
 dev = [
     "mypy>=2.1.0",
+    "pytest>=8.3",
+]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+markers = [
+    "e2e: end-to-end tests that build the wheel and install jpq into a throwaway venv",
 ]
 
 [tool.mypy]
