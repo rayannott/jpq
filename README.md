@@ -36,8 +36,12 @@ $ echo '{"name":"alice","age":30}' | jpq 'this["name"]'  # "alice"
 
 $ echo '[1,2,3,4,5]' | jpq 'statistics.mean(this)'  # 3
 
+$ echo '{"a": [{"b": 2}]}' | jpq 'this.a[0].b'  # 2
+
 $ echo '[{"status":"ok"},{"status":"error"},{"status":"ok"}]' | jpq 'collections.Counter(el["status"] for el in this)'  # {"ok": 2, "error": 1}
 ```
+
+Note that you can access `dict` keys as attributes, e.g. `this.name` instead of `this["name"]`.
 
 Pre-imported in the eval namespace: `re`, `collections`, `itertools`, `statistics`, `math`, `datetime`, plus all builtins.
 

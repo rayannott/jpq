@@ -92,6 +92,22 @@ def evaluate(expr: str, this: Any) -> Any:
         raise EvalError(f"{type(e).__name__}: {e}") from e
 
 
+class DictExt(dict):
+    def __getattr__(self, val):
+        try:
+            return self[val]
+        except KeyError:
+            raise AttributeError(val)
+
+
+def _wrap(this: Any) -> Any:
+    if isinstance(this, dict):
+        return DictExt({k: _wrap(v) for k, v in this.items()})
+    if isinstance(this, list):
+        return [_wrap(v) for v in this]
+    return this
+
+
 def write_output(result: Any, *, compact: bool = False) -> str:
     try:
         if compact:
@@ -140,6 +156,7 @@ def main(expr: str | None, compact: bool, no_color: bool) -> None:
 
     try:
         this = read_input(sys.stdin)
+        this = _wrap(this)
         result = evaluate(expr, this)
         output = write_output(result, compact=compact)
     except JpqError as e:
