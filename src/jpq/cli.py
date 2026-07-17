@@ -10,7 +10,7 @@ import statistics
 import sys
 from importlib.metadata import PackageNotFoundError
 from importlib.metadata import version as pkg_version
-from typing import IO, Any
+from typing import IO, Any, KeysView, ValuesView
 
 import rich_click as click
 import rich
@@ -50,7 +50,7 @@ Examples:
 
 
 def _fallback(o: Any) -> Any:
-    if isinstance(o, (set, frozenset)):
+    if isinstance(o, (set, frozenset, KeysView, ValuesView)):
         return list(o)
     if isinstance(o, (datetime.datetime, datetime.date)):
         return o.isoformat()
