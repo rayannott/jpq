@@ -43,6 +43,13 @@ $ echo '[{"status":"ok"},{"status":"error"},{"status":"ok"}]' | jpq 'collections
 
 Note that you can access `dict` keys as attributes, e.g. `this.name` instead of `this["name"]`.
 
+Missing attributes show the available keys when the object has fewer than 20 keys:
+
+```bash
+$ echo '{"name":"alice","age":30}' | jpq 'this.abcd'
+jpq: AttributeError: abcd (available keys: ['name', 'age'])
+```
+
 Pre-imported in the eval namespace: `re`, `collections`, `itertools`, `statistics`, `math`, `datetime`, plus all builtins.
 
 Run `jpq --help` for more.

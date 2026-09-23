@@ -97,6 +97,8 @@ class DictExt(dict):
         try:
             return self[val]
         except KeyError:
+            if len(self) < 20:
+                raise AttributeError(f"{val} (available keys: {list(self)!r})")
             raise AttributeError(val)
 
 
