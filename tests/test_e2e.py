@@ -50,3 +50,28 @@ def test_invalid_json_exits_3(jpq_bin: str) -> None:
     result = _run(jpq_bin, "this", stdin="not json")
     assert result.returncode == 3
     assert result.stderr.startswith("jpq:"), result.stderr
+
+
+@pytest.mark.parametrize("key_count", [0, 2, 19, 20, 21])
+def test_missing_attribute(jpq_bin: str, key_count: int) -> None:
+    data = {f"key{i}": i for i in range(key_count)}
+    result = _run(jpq_bin, "this.abcd", stdin=json.dumps(data))
+    expected = "jpq: AttributeError: abcd"
+    if key_count < 20:
+        expected += f" (available keys: {list(data)!r})"
+    assert result.returncode == 4
+    assert result.stdout == ""
+    assert result.stderr == expected + "\n"
+
+
+def test_missing_nested_attribute(jpq_bin: str) -> None:
+    result = _run(
+        jpq_bin,
+        "this.user.abcd",
+        stdin='{"user": {"name": "alice", "age": 30}}',
+    )
+    assert result.returncode == 4
+    assert result.stdout == ""
+    assert result.stderr == (
+        "jpq: AttributeError: abcd (available keys: ['name', 'age'])\n"
+    )
