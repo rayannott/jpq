@@ -50,29 +50,8 @@ $ echo '{"name":"alice","age":30}' | jpq 'this.abcd'
 jpq: AttributeError: abcd (available keys: ['name', 'age'])
 ```
 
+You can set the `JPQ_VERBOSE` environment variable to get a full set of available keys when an attribute is missing.
+
 Pre-imported in the eval namespace: `re`, `collections`, `itertools`, `statistics`, `math`, `datetime`, plus all builtins.
 
 Run `jpq --help` for more.
-
-## Advanced examples
-
-Pipe an API response through a multi-line expression to reshape it:
-
-```bash
-$ curl -s https://api.github.com/repos/python/cpython | jpq '
-{
-"now": (now:=datetime.datetime.now(tz=datetime.UTC)),
-"stars": this["stargazers_count"],
-"last_pushed_seconds_ago": (
-    now - datetime.datetime.fromisoformat(this["pushed_at"])
-).total_seconds(),
-}'
-{
-  "now": "2026-05-13T15:05:11.746397+00:00",
-  "stars": 72668,
-  "last_pushed_seconds_ago": 566.746397
-}
-```
-Note how the walrus operator (`:=`) is used to assign `now` and use it in the expression and how it is serialized to JSON via `datetime` fallback.
-
-See more examples in the [blog post](https://stack.airatvaliullin.com/tools/terminal/jpq/) about `jpq`.
