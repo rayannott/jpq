@@ -8,17 +8,21 @@ import pathlib
 import re
 import statistics
 import sys
+from collections.abc import KeysView, ValuesView
 from importlib.metadata import PackageNotFoundError
 from importlib.metadata import version as pkg_version
-from typing import IO, Any, KeysView, ValuesView
+from typing import IO, Any
 
-import rich_click as click
 import rich
+import rich_click as click
 from rich.syntax import Syntax
 
 from jpq.exceptions import EvalError, JpqError, OutputError, StdinError
 
 click.rich_click.THEME = "magenta2-modern"
+
+
+_IS_VERBOSE = os.environ.get("JPQ_VERBOSE", "0") == "1"
 
 
 def _get_version() -> str:
@@ -97,7 +101,7 @@ class DictExt(dict):
         try:
             return self[val]
         except KeyError:
-            if len(self) < 20:
+            if _IS_VERBOSE or len(self) < 20:
                 raise AttributeError(f"{val} (available keys: {list(self)!r})")
             raise AttributeError(val)
 
